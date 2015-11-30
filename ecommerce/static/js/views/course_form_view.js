@@ -69,15 +69,16 @@ define([
             courseTypeRadioTemplate: _.template(CourseTypeRadioTemplate),
 
             courseTypes: {
-                honor: {
-                    type: 'honor',
-                    displayName: gettext('Free (Honor)'),
-                    helpText: gettext('Free honor track with Honor Certificate')
+                audit: {
+                    type: 'audit',
+                    displayName: gettext('Audit'),
+                    helpText: gettext('Free audit track (No certificate)')
                 },
-                verified: {
-                    type: 'verified',
-                    displayName: gettext('Verified'),
-                    helpText: gettext('Paid certificate track with initial verification and Verified Certificate')
+                verifiedAudit: {
+                    type: 'verifiedAudit',
+                    displayName: gettext('Verified (with Audit)'),
+                    helpText: gettext('Paid certificate track with initial verification, Verified Certificate, and ' +
+                        'audit as the free mode.')
                 },
                 professional: {
                     type: 'professional',
@@ -90,6 +91,17 @@ define([
                     displayName: gettext('Credit'),
                     helpText: gettext('Paid certificate track with initial verification and Verified Certificate, ' +
                         'and option to purchase credit')
+                },
+                honor: {
+                    type: 'honor',
+                    displayName: gettext('Free (Honor) [DEPRECATED]'),
+                    helpText: gettext('Free honor track with Honor Certificate [DEPRECATED]')
+                },
+                verifiedHonor: {
+                    type: 'verifiedHonor',
+                    displayName: gettext('Verified (with Honor) [DEPRECATED]'),
+                    helpText: gettext('Paid certificate track with initial verification, Verified Certificate, and ' +
+                        'honor as the free mode. [DEPRECATED]')
                 }
             },
 
@@ -97,7 +109,8 @@ define([
             courseSeatViewMappings: {
                 audit: AuditCourseSeatFormFieldView,
                 honor: HonorCourseSeatFormFieldView,
-                verified: VerifiedCourseSeatFormFieldView,
+                verifiedAudit: VerifiedCourseSeatFormFieldView,
+                verifiedHonor: VerifiedCourseSeatFormFieldView,
                 professional: ProfessionalCourseSeatFormFieldView,
                 credit: CreditCourseSeatFormFieldView
             },
@@ -176,11 +189,17 @@ define([
                     courseType = this.editing ? this.lockedCourseType : this.model.get('type');
 
                 switch (courseType) {
-                    case 'honor':
-                        activeCourseTypes = ['honor', 'verified', 'credit'];
+                    case 'audit':
+                        activeCourseTypes = ['verifiedAudit', 'credit'];
                         break;
-                    case 'verified':
-                        activeCourseTypes = ['verified', 'credit'];
+                    case 'honor':
+                        activeCourseTypes = ['honor', 'verifiedAudit', 'verifiedHonor', 'credit'];
+                        break;
+                    case 'verifiedHonor':
+                        activeCourseTypes = ['verifiedHonor', 'credit'];
+                        break;
+                    case 'verifiedAudit':
+                        activeCourseTypes = ['verifiedAudit', 'credit'];
                         break;
                     case 'professional':
                         activeCourseTypes = ['professional'];
@@ -189,7 +208,14 @@ define([
                         activeCourseTypes = ['credit'];
                         break;
                     default:
-                        activeCourseTypes = ['honor', 'verified', 'professional', 'credit'];
+                        activeCourseTypes = [
+                            'audit',
+                            'honor',
+                            'verifiedHonor',
+                            'verifiedAudit',
+                            'professional',
+                            'credit'
+                        ];
                         break;
                 }
 

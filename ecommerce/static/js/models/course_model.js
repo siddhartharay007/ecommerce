@@ -110,10 +110,12 @@ define([
              * Mapping of course type to an array of course seat types.
              */
             courseTypeSeatMapping: {
+                audit: ['audit'],
                 honor: ['audit', 'honor'],
-                verified: ['audit', 'honor', 'verified'],
+                verifiedAudit: ['audit', 'verifiedAudit'],
+                verifiedHonor: ['honor', 'verifiedHonor'],
                 professional: ['professional'],
-                credit: ['audit', 'honor', 'verified', 'credit']
+                credit: ['audit', 'honor', 'verifiedAudit', 'verifiedHonor', 'credit']
             },
 
             /**
@@ -121,7 +123,7 @@ define([
              *
              * Note that audit seats cannot be created, only edited.
              */
-            creatableSeatTypes: ['honor', 'verified', 'professional', 'credit'],
+            creatableSeatTypes: ['audit', 'honor', 'verified', 'professional', 'credit'],
 
             initialize: function () {
                 this.get('products').on('change:id_verification_required', this.triggerIdVerified, this);

@@ -49,7 +49,8 @@ define([
             // http://backbonerelational.org/#RelationalModel-subModelTypes
             getSeatType: function () {
                 switch (this.get('certificate_type')) {
-                    case 'verified':
+                    case 'verifiedAudit':
+                    case 'verifiedHonor':
                     {
                         return 'verified';
                     }
@@ -83,7 +84,8 @@ define([
 
             getCertificateDisplayName: function () {
                 switch (this.get('certificate_type')) {
-                    case 'verified':
+                    case 'verifiedAudit':
+                    case 'verifiedHonor':
                     case 'credit':
                         return gettext('Verified Certificate');
 

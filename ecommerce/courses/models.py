@@ -63,7 +63,7 @@ class Course(models.Model):
     @classmethod
     def is_mode_verified(cls, mode):
         """ Returns True if the mode is verified, otherwise False. """
-        return mode.lower() in ('verified', 'professional', 'credit')
+        return mode.lower() in ('verifiedHonor', 'verifiedAudit', 'professional', 'credit')
 
     @classmethod
     def certificate_type_for_mode(cls, mode):
@@ -85,10 +85,12 @@ class Course(models.Model):
             return 'credit'
         elif 'professional' in seat_types or 'no-id-professional' in seat_types:
             return 'professional'
-        elif 'verified' in seat_types:
+        elif 'verifiedHonor' in seat_types or 'verifiedAudit' in seat_types:
             return 'verified'
-        else:
+        elif 'honor' in seat_types:
             return 'honor'
+        else:
+            return 'audit'
 
     @property
     def parent_seat_product(self):
