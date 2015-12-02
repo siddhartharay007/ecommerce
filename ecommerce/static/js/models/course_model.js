@@ -112,10 +112,10 @@ define([
             courseTypeSeatMapping: {
                 audit: ['audit'],
                 honor: ['audit', 'honor'],
-                verifiedAudit: ['audit', 'verifiedAudit'],
-                verifiedHonor: ['honor', 'verifiedHonor'],
+                verifiedAudit: ['audit', 'verified'],
+                verifiedHonor: ['honor', 'verified'],
                 professional: ['professional'],
-                credit: ['audit', 'honor', 'verifiedAudit', 'verifiedHonor', 'credit']
+                credit: ['audit', 'honor', 'verified', 'credit']
             },
 
             /**

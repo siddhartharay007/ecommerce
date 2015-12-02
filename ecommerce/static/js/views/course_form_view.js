@@ -109,8 +109,8 @@ define([
             courseSeatViewMappings: {
                 audit: AuditCourseSeatFormFieldView,
                 honor: HonorCourseSeatFormFieldView,
-                verifiedAudit: VerifiedCourseSeatFormFieldView,
-                verifiedHonor: VerifiedCourseSeatFormFieldView,
+                verified: VerifiedCourseSeatFormFieldView,
+                //verifiedHonor: VerifiedCourseSeatFormFieldView,
                 professional: ProfessionalCourseSeatFormFieldView,
                 credit: CreditCourseSeatFormFieldView
             },
