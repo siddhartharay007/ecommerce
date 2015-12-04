@@ -135,6 +135,10 @@ BROKER_URL = 'amqp://'
 # CELERY_ALWAYS_EAGER = True
 # END CELERY
 
+CORS_ORIGIN_WHITELIST = (
+    '127.0.0.1',
+)
+
 
 ENABLE_AUTO_AUTH = True
 LOGGING = get_logger_config(debug=DEBUG, dev_env=True, local_loglevel='DEBUG')

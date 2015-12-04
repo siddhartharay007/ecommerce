@@ -7,6 +7,7 @@ from django.contrib import admin
 from django.contrib.auth.views import logout
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import RedirectView, TemplateView
 
 from ecommerce.core import views as core_views
@@ -43,7 +44,7 @@ login = RedirectView.as_view(url=reverse_lazy('social:begin', args=['edx-oidc'])
 # Use the same auth views for all logins, including those originating from the browseable API.
 AUTH_URLS = [
     url(r'^login/$', login, name='login'),
-    url(r'^logout/$', logout, name='logout'),
+    url(r'^logout/$', xframe_options_exempt(logout), name='logout'),
 ]
 
 urlpatterns = [

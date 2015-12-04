@@ -182,6 +182,7 @@ TEMPLATES = [
 # MIDDLEWARE CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#middleware-classes
 MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -246,6 +247,7 @@ DJANGO_APPS = [
     'rest_framework',
     'simple_history',
     'waffle',
+    'corsheaders',
 ]
 
 # Apps specific to this project go here.
