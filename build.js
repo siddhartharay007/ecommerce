@@ -31,10 +31,6 @@
         {
             name: 'js/apps/credit_checkout_app',
             exclude: ['js/common']
-        },
-        {
-            name: 'js/apps/basket_app',
-            exclude: ['js/common']
         }
     ]
 })

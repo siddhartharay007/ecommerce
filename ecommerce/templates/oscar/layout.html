@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% load compress %}
+{% load core_extras %}
+{% load staticfiles %}
+
+{% block mainstyles %}
+    {% block styles %}
+       {% compress css %}
+        <link rel="stylesheet" href="{% static 'sass/base/main.scss' %}" type="text/x-scss">
+        {% captureas theme_scss %}
+            {% settings_value 'THEME_SCSS' %}
+        {% endcaptureas %}
+        <link rel="stylesheet" href="{% static theme_scss %}" type="text/x-scss">
+    {% endcompress %}
+    {% endblock %}
+{% endblock %}
+
+{% block layout %}
+    {% include 'edx/partials/_staff_navbar.html' %}
+
+
+    {# Main content of page - other layout templates may override this block #}
+    {% block content_wrapper %}
+        <div class="container-fluid page">
+            <div class="page_inner">
+                {% block header %}
+                    <div class="page-header action">
+                        <h1>{% block headertext %}{% endblock %}</h1>
+                    </div>
+                {% endblock %}
+                {% include "partials/alert_messages.html" %}
+                {% block subnavigation %}{% endblock %}
+                <div class="content">
+                    {% block subheader %}{% endblock subheader %}
+
+                    {# Div exists for AJAX updates to entire content section #}
+                    <div id="content_inner">{% block content %}{% endblock %}</div>
+                </div>
+            </div>
+        </div>
+    {% endblock %}
+
+    {% include "partials/footer.html" %}
+{% endblock %}
+
+{# Local scripts #}
+{% block scripts %}
+    {{ block.super }}
+    {% compress js %}
+    <!-- Twitter Bootstrap -->
+    <script type="text/javascript" src="{% static "oscar/js/bootstrap3/bootstrap.min.js" %}"></script>
+    <!-- Oscar -->
+    <script src="{% static "oscar/js/oscar/ui.js" %}" type="text/javascript" charset="utf-8"></script>
+    {% endcompress %}
+{% endblock %}
+
+{% block extrascripts %}
+    {% include "partials/extrascripts.html" %}
+    {{ block.super }}
+{% endblock %}
+
+{% block onbodyload %}
+    {{ block.super }}
+    oscar.init();
+{% endblock %}

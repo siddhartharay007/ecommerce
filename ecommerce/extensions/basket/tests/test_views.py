@@ -1,30 +1,16 @@
 import datetime
-import hashlib
-import json
 
-import ddt
-from django.conf import settings
-from django.core.cache import cache
 from django.core.urlresolvers import reverse
-from django.test import override_settings
 import httpretty
 from oscar.core.loading import get_class, get_model
-from oscar.test import newfactories as factories
 import pytz
-from requests.exceptions import ConnectionError, Timeout
-from slumber.exceptions import SlumberBaseException
-from testfixtures import LogCapture
 
-from ecommerce.core.tests import toggle_switch
 from ecommerce.courses.tests.factories import CourseFactory
-from ecommerce.extensions.payment.tests.processors import DummyProcessor
-from ecommerce.extensions.test.factories import create_coupon, prepare_voucher
-from ecommerce.settings import get_lms_url
+from ecommerce.extensions.test.factories import create_coupon
 from ecommerce.tests.factories import StockRecordFactory
 from ecommerce.tests.mixins import LmsApiMockMixin
 from ecommerce.tests.testcases import TestCase
 
-Applicator = get_class('offer.utils', 'Applicator')
 Basket = get_model('basket', 'Basket')
 Benefit = get_model('offer', 'Benefit')
 Catalog = get_model('catalogue', 'Catalog')
@@ -96,7 +82,7 @@ class BasketSingleItemViewTests(LmsApiMockMixin, TestCase):
         self.mock_footer_api_response()
         self.mock_course_api_response()
         url = '{path}?sku={sku}&code={code}'.format(path=self.path, sku=self.stock_record.partner_sku,
-                                                    code=COUPON_CODE)
+            code=COUPON_CODE)
         response = self.client.get(url)
         expected_url = self.get_full_url(reverse('basket:summary'))
         self.assertRedirects(response, expected_url, status_code=303)
@@ -106,93 +92,3 @@ class BasketSingleItemViewTests(LmsApiMockMixin, TestCase):
         self.assertEqual(basket.lines.count(), 1)
         self.assertTrue(basket.contains_a_voucher)
         self.assertEqual(basket.lines.first().product, self.stock_record.product)
-
-
-@httpretty.activate
-@ddt.ddt
-@override_settings(PAYMENT_PROCESSORS=['ecommerce.extensions.payment.tests.processors.DummyProcessor'])
-class BasketSummaryViewTests(LmsApiMockMixin, TestCase):
-    """ BasketSummaryView basket view tests. """
-    path = reverse('basket:summary')
-
-    def setUp(self):
-        super(BasketSummaryViewTests, self).setUp()
-        self.user = self.create_user()
-        self.client.login(username=self.user.username, password=self.password)
-        self.course = CourseFactory(name='BasketSummaryTest')
-        toggle_switch(settings.PAYMENT_PROCESSOR_SWITCH_PREFIX + DummyProcessor.NAME, True)
-
-    def mock_course_api_error(self, error):
-        def callback(request, uri, headers):  # pylint: disable=unused-argument
-            raise error
-        course_url = get_lms_url('api/courses/v1/courses/{}/'.format(self.course))
-        httpretty.register_uri(httpretty.GET, course_url, body=callback, content_type='application/json')
-
-    @ddt.data(ConnectionError, SlumberBaseException, Timeout)
-    def test_course_api_failure(self, error):
-        """ Verify a connection error and timeout are logged when they happen. """
-        self.mock_footer_api_response()
-        seat = self.course.create_or_update_seat('verified', True, 50, self.partner)
-        basket = factories.BasketFactory(owner=self.user)
-        basket.add_product(seat, 1)
-        self.assertEqual(basket.lines.count(), 1)
-
-        logger_name = 'ecommerce.extensions.basket.views'
-        self.mock_course_api_error(error)
-
-        with LogCapture(logger_name) as l:
-            response = self.client.get(self.path)
-            self.assertEqual(response.status_code, 200)
-            l.check(
-                (
-                    logger_name, 'ERROR',
-                    u'Failed to retrieve data from Course API for course [{}].'.format(self.course.id)
-                )
-            )
-
-    @ddt.data(
-        (Benefit.PERCENTAGE, 100, 100, False),
-        (Benefit.PERCENTAGE, 50, 50, True),
-        (Benefit.FIXED, 50, 10, True)
-    )
-    @ddt.unpack
-    def test_response_success(self, benefit_type, benefit_value, expected_value, is_discounted):
-        """ Verify a successful response is returned. """
-        seat = self.course.create_or_update_seat('verified', True, 500, self.partner)
-        basket = factories.BasketFactory(owner=self.user)
-        basket.add_product(seat, 1)
-
-        _range = factories.RangeFactory(products=[seat, ])
-        voucher, __ = prepare_voucher(_range=_range, benefit_type=benefit_type, benefit_value=benefit_value)
-        basket.vouchers.add(voucher)
-        Applicator().apply(basket)
-
-        self.assertEqual(basket.lines.count(), 1)
-        self.mock_course_api_response(self.course)
-        self.mock_footer_api_response()
-
-        response = self.client.get(self.path)
-        self.assertEqual(response.context['lines'][0].discount_percentage, expected_value)
-        self.assertEqual(response.context['lines'][0].is_discounted, is_discounted)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['payment_processors'][0].NAME, DummyProcessor.NAME)
-        self.assertEqual(json.loads(response.context['footer']), {'footer': 'edX Footer'})
-
-    def test_cached_course(self):
-        """ Verify that the course info is cached. """
-        seat = self.course.create_or_update_seat('verified', True, 50, self.partner)
-        basket = factories.BasketFactory(owner=self.user)
-        basket.add_product(seat, 1)
-        self.assertEqual(basket.lines.count(), 1)
-        self.mock_course_api_response(self.course)
-        self.mock_footer_api_response()
-
-        cache_key = 'courses_api_detail_{}'.format(self.course.id)
-        cache_hash = hashlib.md5(cache_key).hexdigest()
-        cached_course_before = cache.get(cache_hash)
-        self.assertIsNone(cached_course_before)
-
-        response = self.client.get(self.path)
-        self.assertEqual(response.status_code, 200)
-        cached_course_after = cache.get(cache_hash)
-        self.assertEqual(cached_course_after['name'], self.course.name)
