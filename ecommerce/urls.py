@@ -8,6 +8,7 @@ from django.contrib.auth.views import logout
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect
 from django.views.generic import RedirectView, TemplateView
+from paypal.express.dashboard.app import application
 
 from ecommerce.core import views as core_views
 from ecommerce.extensions.urls import urlpatterns as extensions_patterns
@@ -52,9 +53,11 @@ urlpatterns = [
     url(r'^auto_auth/$', core_views.AutoAuth.as_view(), name='auto_auth'),
     url(r'^api-auth/', include(AUTH_URLS, namespace='rest_framework')),
     url(r'^api-docs/', include('rest_framework_swagger.urls')),
+    url(r'^checkout/paypal/', include('paypal.express.urls')),
     url(r'^courses/', include('ecommerce.courses.urls', namespace='courses')),
     url(r'^credit/', include('ecommerce.credit.urls', namespace='credit')),
     url(r'^coupons/', include('ecommerce.coupons.urls', namespace='coupons')),
+    url(r'^dashboard/paypal/express/', include(application.urls)),
     url(r'^health/$', core_views.health, name='health'),
     url(r'^i18n/', include('django.conf.urls.i18n')),
     url(r'^jsi18n/$', 'django.views.i18n.javascript_catalog', js_info_dict),

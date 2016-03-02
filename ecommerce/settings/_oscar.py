@@ -22,6 +22,7 @@ OSCAR_APPS = [
     'ecommerce.extensions.api',
     'ecommerce.extensions.fulfillment',
     'ecommerce.extensions.refund',
+    'paypal',
 ] + get_core_apps([
     'ecommerce.extensions.analytics',
     'ecommerce.extensions.basket',
@@ -243,6 +244,16 @@ OSCAR_DASHBOARD_NAVIGATION = [
         'label': _('Reports'),
         'icon': 'icon-bar-chart',
         'url_name': 'dashboard:reports-index',
+    },
+    {
+        'label': _('PayPal'),
+        'icon': 'icon-globe',
+        'children': [
+            {
+                'label': _('Express transactions'),
+                'url_name': 'paypal-express-list',
+            },
+        ]
     },
 ]
 # END DASHBOARD NAVIGATION MENU
