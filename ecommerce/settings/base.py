@@ -122,6 +122,8 @@ COMPRESS_PRECOMPILERS = (
 )
 
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter']
+
+COMPRESS_OFFLINE_CONTEXT = 'ecommerce.core.utils.offline_context'
 # END STATIC FILE CONFIGURATION
 
 
@@ -464,9 +466,6 @@ CELERYD_HIJACK_ROOT_LOGGER = False
 # See http://celery.readthedocs.org/en/latest/configuration.html#celery-always-eager.
 CELERY_ALWAYS_EAGER = False
 # END CELERY
-
-
-THEME_SCSS = 'sass/themes/default.scss'
 
 # Link to the support site
 SUPPORT_URL = 'SET-ME-PLEASE'

@@ -1,7 +1,6 @@
 {% extends 'rest_framework_swagger/base.html' %}
 
 {% load compress %}
-{% load core_extras %}
 {% load staticfiles %}
 
 {% block title %}edX E-Commerce API {{ swagger_settings.api_version }}{% endblock %}
@@ -10,10 +9,7 @@
   {{ block.super }}
   {% compress css %}
     <link rel="stylesheet" href="{% static 'sass/base/main.scss' %}" type="text/x-scss">
-    {% captureas theme_scss %}
-      {% settings_value 'THEME_SCSS' %}
-    {% endcaptureas %}
-    <link rel="stylesheet" href="{% static theme_scss %}" type="text/x-scss">
+    <link rel="stylesheet" href="{% static theme_scss_path %}" type="text/x-scss">
     <link rel="stylesheet" href="{% static 'sass/edx-swagger.scss' %}" type="text/x-scss">
   {% endcompress %}
 {% endblock %}
