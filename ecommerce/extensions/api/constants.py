@@ -52,3 +52,7 @@ class APIConstants(object):
             'attribute': 'name'
         }
     ]
+    UPDATABLE_RANGE_FIELDS = [
+        KEYS.CATALOG_QUERY,
+        KEYS.COURSE_SEAT_TYPES,
+    ]

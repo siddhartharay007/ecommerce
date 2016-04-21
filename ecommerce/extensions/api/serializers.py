@@ -493,7 +493,7 @@ class CouponSerializer(ProductPaymentInfoMixin, serializers.ModelSerializer):
 
     def get_course_seat_types(self, obj):
         offer = self.retrieve_offer(obj)
-        return offer.condition.range.course_seat_types
+        return offer.condition.range.course_seat_types.split(',')
 
     class Meta(object):
         model = Product

@@ -35,6 +35,7 @@ Order = get_model('order', 'Order')
 Product = get_model('catalogue', 'Product')
 ProductCategory = get_model('catalogue', 'ProductCategory')
 ProductClass = get_model('catalogue', 'ProductClass')
+Range = Range = get_model('offer', 'Range')
 StockRecord = get_model('partner', 'StockRecord')
 Voucher = get_model('voucher', 'Voucher')
 
@@ -50,6 +51,18 @@ class CouponViewSet(EdxOrderPlacementMixin, viewsets.ModelViewSet):
         if self.action == 'list':
             return CouponListSerializer
         return CouponSerializer
+
+    def _prepare_course_seat_types(self, course_seat_types):
+        """
+        Convert list of course seat types into comma-separated string.
+        Arguments:
+            course_seat_types (list): List of course seat types
+        Returns:
+            Comma-separated string.
+        """
+        if course_seat_types:
+            return ','.join(seat_type.lower() for seat_type in course_seat_types)
+        return course_seat_types
 
     def create(self, request, *args, **kwargs):
         """Adds coupon to the user's basket.
@@ -88,10 +101,7 @@ class CouponViewSet(EdxOrderPlacementMixin, viewsets.ModelViewSet):
             note = request.data.get('note', None)
             max_uses = request.data.get('max_uses', None)
             catalog_query = request.data.get(AC.KEYS.CATALOG_QUERY, None)
-            course_seat_types = request.data.get(AC.KEYS.COURSE_SEAT_TYPES, None)
-
-            if course_seat_types:
-                course_seat_types = ','.join(seat_type.lower() for seat_type in course_seat_types)
+            course_seat_types = self._prepare_course_seat_types(request.data.get(AC.KEYS.COURSE_SEAT_TYPES, None))
 
             # Maximum number of uses can be set for each voucher type and disturb
             # the predefined behaviours of the different voucher types. Therefor
@@ -301,9 +311,22 @@ class CouponViewSet(EdxOrderPlacementMixin, viewsets.ModelViewSet):
         if data:
             vouchers.all().update(**data)
 
+        range_data = {}
+
+        for field in AC.UPDATABLE_RANGE_FIELDS:
+            self.create_update_data_dict(
+                request_data=request.data,
+                request_data_key=field,
+                update_dict=range_data,
+                update_dict_key=field
+            )
+
+        if range_data:
+            Range.objects.filter(name='Range for coupon [{coupon_id}]'.format(coupon_id=coupon.id)).update(**range_data)
+
         benefit_value = request.data.get(AC.KEYS.BENEFIT_VALUE, '')
         if benefit_value:
-            self.update_coupon_benefit_value(benefit_value=benefit_value, vouchers=vouchers)
+            self.update_coupon_benefit_value(benefit_value=benefit_value, vouchers=vouchers, coupon=coupon)
 
         category_ids = request.data.get(AC.KEYS.CATEGORY_IDS, '')
         if category_ids:
@@ -336,14 +359,16 @@ class CouponViewSet(EdxOrderPlacementMixin, viewsets.ModelViewSet):
         """
         value = request_data.get(request_data_key, '')
         if value:
-            update_dict[update_dict_key] = value
+            update_dict[update_dict_key] = self._prepare_course_seat_types(value) \
+                if update_dict_key == AC.KEYS.COURSE_SEAT_TYPES else value
 
-    def update_coupon_benefit_value(self, benefit_value, vouchers):
+    def update_coupon_benefit_value(self, benefit_value, vouchers, coupon):
         """
         Remove all offers from the vouchers and add a new offer
         Arguments:
             benefit_value (Decimal): Benefit value associated with a new offer
             vouchers (ManyRelatedManager): Vouchers associated with the coupon to be updated
+            coupon (Product): Coupon product associated with vouchers
         """
         voucher_offers = vouchers.first().offers
         voucher_offer = voucher_offers.first()
@@ -351,7 +376,8 @@ class CouponViewSet(EdxOrderPlacementMixin, viewsets.ModelViewSet):
         new_offer = update_voucher_offer(
             offer=voucher_offer,
             benefit_value=benefit_value,
-            benefit_type=voucher_offer.benefit.type
+            benefit_type=voucher_offer.benefit.type,
+            coupon=coupon
         )
         for voucher in vouchers.all():
             voucher.offers.clear()

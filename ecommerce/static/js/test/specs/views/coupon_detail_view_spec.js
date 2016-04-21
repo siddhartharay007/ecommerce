@@ -56,38 +56,6 @@ define([
                 expect(view.couponType(enrollmentCodeVoucher)).toBe('Enrollment Code');
             });
 
-            it('should get course ID from seat data', function () {
-                expect(view.courseID(verifiedSeat.attribute_values)).toBe('course-v1:edX+DemoX+Demo_Course');
-
-                verifiedSeat.attribute_values = [
-                    {
-                        name: 'certificate_type',
-                        value: 'verified'
-                    },
-                    {
-                        name: 'id_verification_required',
-                        value: true
-                    }
-                ];
-                expect(view.courseID(verifiedSeat.attribute_values)).toBe('');
-            });
-
-            it('should get certificate type from seat data', function () {
-                expect(view.certificateType(verifiedSeat.attribute_values)).toBe('Verified');
-
-                verifiedSeat.attribute_values = [
-                    {
-                        name: 'course_key',
-                        value: 'course-v1:edX+DemoX+Demo_Course'
-                    },
-                    {
-                        name: 'id_verification_required',
-                        value: true
-                    }
-                ];
-                expect(view.certificateType(verifiedSeat.attribute_values)).toBe('');
-            });
-
             it('should get discount value from voucher data', function () {
                 expect(view.discountValue(percentageDiscountCodeVoucher)).toBe('50%');
                 expect(view.discountValue(valueDiscountCodeVoucher)).toBe('$12');
@@ -111,8 +79,7 @@ define([
             });
 
             it('should display correct data upon rendering', function () {
-                var course_data = model.get('seats')[0].attribute_values,
-                    voucher = model.get('vouchers')[0],
+                var voucher = model.get('vouchers')[0],
                     category = model.get('categories')[0].name;
 
                 spyOn(view, 'renderVoucherTable');
@@ -125,10 +92,10 @@ define([
                 );
                 expect(view.$el.find('.category > .value').text()).toEqual(category);
                 expect(view.$el.find('.discount-value > .value').text()).toEqual(view.discountValue(voucher));
-                expect($.trim(view.$el.find('.course-info > .value').text())).toEqual(view.courseID(course_data));
-                expect(view.$el.find('.course-info > .value > .pull-right').text()).toEqual(
-                    view.certificateType(course_data)
+                expect(view.$el.find('.course-info > .value').contents().get(0).nodeValue).toEqual(
+                    'course-v1:edX+DemoX+Demo_Course'
                 );
+                expect(view.$el.find('.course-info > .value > .pull-right').text()).toEqual('verified');
                 expect(view.$el.find('.start-date-info > .value').text()).toEqual(
                     view.formatDateTime(voucher.start_datetime)
                 );
@@ -141,6 +108,33 @@ define([
                     _s.sprintf('$%s', model.get('price'))
                 );
                 expect(view.renderVoucherTable).toHaveBeenCalled();
+            });
+
+            it('should render course data', function () {
+                view.model.set('catalog_type', 'Single course');
+                view.model.set('course_id', 'a/b/c');
+                view.model.set('seat_type', 'Verified');
+
+                view.render();
+
+                var course_info = view.$el.find('.course-info');
+                expect(course_info.children('.value').length).toEqual(1);
+                expect(course_info.children('.value').text()).toEqual('a/b/cVerified');
+
+                view.model.set('catalog_type', 'Multiple courses');
+                view.model.set('courses', [
+                    {'course_id': 'a/b/c', 'seat_type': 'Verified'},
+                    {'course_id': 'c/d/e', 'seat_type': 'Honor'}
+                ]);
+                view.model.set('catalog-query', '*:*');
+
+                view.render();
+
+                course_info = view.$el.find('.course-info');
+
+                expect(course_info.children('.value').length).toEqual(2);
+                expect(course_info.children('.value').text()).toEqual('a/b/cVerifiedc/d/eHonor');
+                expect(view.$el.find('.catalog-query > .value').text()).toEqual('*:*');
             });
 
             it('should display data table', function () {

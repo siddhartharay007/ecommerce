@@ -33,6 +33,7 @@ define([
             },
 
             remove: function () {
+                console.log('Remove form!');
                 Backbone.Validation.unbind(this);
 
                 this.clearAlerts();
