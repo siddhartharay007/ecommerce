@@ -7,6 +7,7 @@ define([
         'models/tracking_model',
         'models/user_model',
         'views/analytics_view',
+        'js-cookie'
     ],
     function ($,
               _,
@@ -15,7 +16,8 @@ define([
               AnalyticsUtils,
               TrackingModel,
               UserModel,
-              AnalyticsView
+              AnalyticsView,
+              Cookie
               ) {
         'use strict';
 
@@ -174,7 +176,7 @@ define([
                         cookie = 'checkout-payment-test';
 
                     spyOn($, 'ajax');
-                    $.cookie('ecommerce_csrftoken', cookie);
+                    Cookie.set('ecommerce_csrftoken', cookie);
 
                     BasketPage.checkoutPayment(data);
 
