@@ -32,20 +32,24 @@ class LMSPublisher(object):
 
     def serialize_seat_for_commerce_api(self, seat):
         """ Serializes a course seat product to a dict that can be further serialized to JSON. """
-        stock_record = seat.stockrecords.first()
-        bulk_sku = None
-        if seat.attr.certificate_type in ENROLLMENT_CODE_SEAT_TYPES:
-            enrollment_code = seat.course.enrollment_code_product
-            if enrollment_code:
-                bulk_sku = enrollment_code.stockrecords.first().partner_sku
-        return {
-            'name': mode_for_seat(seat),
-            'currency': stock_record.price_currency,
-            'price': int(stock_record.price_excl_tax),
-            'sku': stock_record.partner_sku,
-            'bulk_sku': bulk_sku,
-            'expires': self.get_seat_expiration(seat),
-        }
+        # Exclude enrollment code products
+        if not hasattr(seat.attr, 'seat_type'):
+            stock_record = seat.stockrecords.first()
+
+            bulk_sku = None
+            if getattr(seat.attr, 'certificate_type', '') in ENROLLMENT_CODE_SEAT_TYPES:
+                enrollment_code = seat.course.enrollment_code_product
+                if enrollment_code:
+                    bulk_sku = enrollment_code.stockrecords.first().partner_sku
+
+            return {
+                'name': mode_for_seat(seat),
+                'currency': stock_record.price_currency,
+                'price': int(stock_record.price_excl_tax),
+                'sku': stock_record.partner_sku,
+                'bulk_sku': bulk_sku,
+                'expires': self.get_seat_expiration(seat),
+            }
 
     def _publish_creditcourse(self, course_id, access_token):
         """Creates or updates a CreditCourse object on the LMS."""
