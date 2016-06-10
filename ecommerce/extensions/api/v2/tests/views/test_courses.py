@@ -49,7 +49,7 @@ class CourseViewSetTests(ProductSerializerMixin, CourseCatalogTestMixin, TestCas
         }
 
         if include_products:
-            data['products'] = [self.serialize_product(product) for product in course.products.all()]
+            data['products'] = [self.serialize_product(product) for product in course.seat_products]
 
         return data
 

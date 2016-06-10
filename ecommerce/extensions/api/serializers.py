@@ -188,7 +188,7 @@ class RefundSerializer(serializers.ModelSerializer):
 
 class CourseSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.RegexField(COURSE_ID_REGEX, max_length=255)
-    products = ProductSerializer(many=True)
+    products = serializers.SerializerMethodField()
     products_url = serializers.SerializerMethodField()
     last_edited = serializers.SerializerMethodField()
 
@@ -200,6 +200,11 @@ class CourseSerializer(serializers.HyperlinkedModelSerializer):
         include_products = kwargs.get('context', {}).pop('include_products', False)
         if not include_products:
             self.fields.pop('products', None)
+
+    def get_products(self, obj):
+        qs = Product.objects.filter(course=obj.id, structure="child")
+        serializer = ProductSerializer(instance=qs, many=True, context={'request': self.context['request']})
+        return serializer.data
 
     def get_last_edited(self, obj):
         return obj.history.latest().history_date.strftime(ISO_8601_FORMAT)
